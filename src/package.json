@@ -1,0 +1,18 @@
+{
+  "name": "artixgamelauncher",
+  "productName": "Artix Game Launcher",
+  "description": "Play Artix Entertainment Games outside of a web browser",
+  "homepage": "http://www.artix.com/downloads/artixlauncher/",
+  "author": {
+    "name": "Artix Entertainment, LLC",
+    "url": "https://support.artix.com/"
+  },
+  "version": "2.1.2",
+  "main": "main.js",
+  "dependencies": {
+    "electron-download-manager": "^2.3.0",
+    "electron-json-storage": "^4.1.6",
+    "electron-progressbar": "1.2.0",
+    "request": "2.88.0"
+  }
+}
