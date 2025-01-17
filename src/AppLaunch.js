@@ -17,85 +17,54 @@ var gameWindows =
     ebil: { url:"http://www.ebilgames.com", size:"top=270,left=135,width=1024,height=700" }
 };
 
+
 function LaunchApp(name) {
-    //LogPage(launchMode + " Launch " + navigator.userAgent);
-	if (launchMode == "chrome-nw"|| launchMode == "electron")
-	{
-		if(name.indexOf('-') > -1)
-		{
-			var gameName = name.split('-')[1];
-			
-			if(gameName == 'iq' && window.interop)
-			{
-				if(window.interop.launchIQ)
-				{
-					window.interop.launchIQ(gameWindows[gameName].url);
-				}
-				else
-				{
-				//	window.open(gameWindows[name].url, "", gameWindows[name].size);
-					alert("Please update your launcher to run IdleQuest");
-				}
-				
-			}
-			else if(gameName == 'iq')
-			{
-				alert("Please update your launcher to run IdleQuest");
-			}
-			
-			
-			else if(gameName == "aq3d")
-			{
-				
-				if(window.interop)
-				{
-					window.interop.launch3D();
-				}
-				else {
-				//if(confirm("Launch AQ3D?  Requires Steam"))
-				//{
-					aq3dwin = window.open("", "", "top=30,left=30,width=500,height=300");
-					//aq3dwin.setTimeout( function () {
-						aq3dwin.setTimeout(close, 10000);
-						aq3dwin.open("steam://rungameid/429790","_self");
-					//}, 1000);
-				//}
-				//else {
-				//	window.open(gameWindows[gameName].url, "", gameWindows[gameName].size);	
-				//}
-				}
-			}
-			
-			else {
-				window.open(gameWindows[gameName].url, "", gameWindows[gameName].size);
-			}
-			
-		}
-		else
-		{
-			window.open(gameWindows[name].url, "", gameWindows[name].size);
-		}
-	}
-    else if (navigator.platform == "MacIntel") {
-        window.webkit.messageHandlers.native.postMessage(name)
-    }
-    else if (navigator.platform.indexOf("Linux") > -1) {
-        launch_game(name)
-    }
-    else {
-        switch (launchMode) {
-            case "chrome":
-                callbackObj.onUIMessage(name);
-                break;
-            case "gecko":
-                geckoDispatch("OnUIMessage", name);
-                break;
-            default:
-                window.external.OnUIMessage(name)
-                break;
+    const isMac = navigator.platform === "MacIntel";
+    const isLinux = navigator.platform.indexOf("Linux") > -1;
+    const isGameWithInterop = (gameName, action) => window.interop && window.interop[action];
+
+    const openGameWindow = (gameName) => {
+        const { url, size } = gameWindows[gameName] || {};
+        if (url && size) {
+            window.open(url, "", size);
         }
+    };
+
+    if (launchMode === "chrome-nw" || launchMode === "electron") {
+        const parts = name.split('-');
+        const gameName = parts.length > 1 ? parts[1] : name;
+
+        if (gameName === 'iq') {
+            if (isGameWithInterop('iq', 'launchIQ')) {
+                window.interop.launchIQ(gameWindows[gameName].url);
+            } else {
+                alert("Please update your launcher to run IdleQuest");
+            }
+        } else if (gameName === 'aq3d') {
+            if (isGameWithInterop('aq3d', 'launch3D')) {
+                window.interop.launch3D();
+            } else {
+                const aq3dwin = window.open("", "", "top=30,left=30,width=500,height=300");
+                aq3dwin.setTimeout(close, 10000);
+                aq3dwin.open("steam://rungameid/429790", "_self");
+            }
+        } else {
+            openGameWindow(gameName);
+        }
+    } else if (isMac) {
+        window.webkit.messageHandlers.native.postMessage(name);
+    } else if (isLinux) {
+        launch_game(name);
+    } else {
+        const uiMessageHandlers = {
+            "chrome": () => callbackObj.onUIMessage(name),
+            "gecko": () => geckoDispatch("OnUIMessage", name),
+            "default": () => window.external.OnUIMessage(name)
+        };
+        (uiMessageHandlers[launchMode] || uiMessageHandlers["default"])();
     }
 }
+
 
 function launchAq3d()
 {

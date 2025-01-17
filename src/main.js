@@ -209,7 +209,7 @@ app.launchIQ = (url) => {
 				nodeIntegration: false,
 				contextIsolation: false,
 				preload: path.join(__dirname, '/../preload.js'),
-				devTools: false,
+				devTools: true,
 				plugins: true
 			}
 		});
@@ -363,59 +363,14 @@ app.launchGame = (name) => {
 };
 
 app.launchGameLocal = (gameName) => {
-	var size = gameWindows[gameName].size.split(',');
-	var size_x = size[2].split('=')[1];
-	var size_y = size[3].split('=')[1];
-	var pos_x = size[1].split('=')[1];
-	var pos_y = size[1].split('=')[1];
-	var gameUrl = gameWindows[gameName].url;
-	app.launchNewWindowURL(gameUrl, Number(size_x), Number(size_y), Number(pos_x), Number(pos_y));
+	let launch = 'LaunchApp("' + gameName + '");';
+	mainWindow.webContents.executeJavaScript(launch);
+	if (protocolLaunch == true) {
+		protocolLaunch = false;
+	}
 };
 
 
-app.launchNewWindowURL = (url, w, h, x, y, r = false, dev = false) => {
-	var new_win = new BrowserWindow({
-		width: w,
-		height: h,
-		backgroundColor: '#000000',
-		show: true,
-		resizable: r,
-		useContentSize: true,
-		autoHideMenuBar: !dev,
-		//alwaysOnTop: true,
-		webPreferences: {
-			nodeIntegration: false,
-			contextIsolation: false,
-			preload: path.join(__dirname, '/../preload.js'),
-			devTools: dev,
-			plugins: true
-		}
-	});
-	new_win.loadURL(url).then(() => {
-		new_win.setAlwaysOnTop(false);
-	}).catch(function() {
-		new_win.close();
-		
-	}); //'https://idlequest.artix.com/game/v/7/');
-
-	new_win.on('focus', function (event) {
-		new_win.setPosition(x, y, true);
-	});
-
-	// if (url.indexOf('405.battleon.com') > -1) {
-	// 	devToolsLog("URL is Admin");
-
-	// 	new_win.on('page-title-updated', function (event) {
-	// 		event.preventDefault();
-	// 		tempTimers.push(setTimeout(function () {
-	// 			devToolsLog('Admin window on top disabled');
-	// 			new_win.setAlwaysOnTop(false);
-	// 		}, 5000));
-	// 		new_win.setTitle(new_win.webContents.getURL());
-
-	// 	});
-	// }
-}
 
 app.setGameWindows = (obj) => {
 	try {
@@ -516,7 +471,7 @@ app.once('ready', () => {
 			preload: path.join(__dirname, '/../preload.js'),
 			nodeIntegration: false,
 			contextIsolation: false,
-			devTools: false,
+			devTools: true,
 			plugins: true
 		}
 	});
