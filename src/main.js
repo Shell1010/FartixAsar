@@ -1,4 +1,6 @@
-// initialize your app
+
+
+
 const clientVersion = 212;
 
 const { app, BrowserWindow, dialog, shell, Tray, Menu, MenuItem, Notification, protocol, session } = require('electron');

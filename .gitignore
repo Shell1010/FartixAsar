@@ -1,1 +1,5 @@
 app.asar
+package-lock.json
+package.json
+icons/
+plugins/
