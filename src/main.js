@@ -305,10 +305,10 @@ app.launchUpdateProcess = async () => {
 };
 
 app.launchGame = (name) => {
-	var size = gameWindows[gameName].size.split(',');
+	var size = gameWindows[name].size.split(',');
 	var size_x = size[2].split('=')[1];
 	var size_y = size[3].split('=')[1];
-	var gameUrl = gameWindows[gameName].url;
+	var gameUrl = gameWindows[name].url;
 	app.launchNewWindowURL(gameUrl, Number(size_x), Number(size_y));
 	protocolLaunch = false;
 };
@@ -556,7 +556,7 @@ app.once('ready', () => {
 			label: 'Dragonfable',
 			id: 'Dragonfable',
 			click: function () {
-				app.launchGame('df');
+				app.launchGame('df');I require 
 			}
 		},
 		{
