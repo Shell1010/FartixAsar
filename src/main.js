@@ -423,13 +423,16 @@ app.once('ready', () => {
 			nodeIntegration: false,
 			contextIsolation: false,
 			devTools: true,
-			plugins: true
+			plugins: true,
+			offscreen: {
+				useSharedTexture: true
+			},
+			paintWhenInitiallyHidden: true,
+
 		}
 	});
-
 	mainWindow = win;
 
-	// remove Artix custom userAgent partial string
 	newAgentString = mainWindow.webContents.userAgent.replace(/Artix.*\s/, "");
 	session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
 		details.requestHeaders['User-Agent'] = newAgentString;
