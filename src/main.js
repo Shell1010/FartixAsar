@@ -2,7 +2,7 @@
 
 const clientVersion = 212;
 
-const { app, BrowserWindow, dialog, shell, Tray, Menu, MenuItem, Notification, protocol, session } = require('electron');
+const { app, BrowserWindow, dialog, shell, Tray, Menu, Notification, protocol, session } = require('electron');
 const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
 	app.quit();
@@ -199,7 +199,7 @@ app.launchIQ = (url) => {
 			webPreferences: {
 				nodeIntegration: false,
 				contextIsolation: false,
-				preload: path.join(__dirname, '/../preload.js'),
+				preload: path.join(__dirname, './preload.js'),
 				devTools: true,
 				plugins: true
 			}
@@ -419,7 +419,7 @@ app.once('ready', () => {
 		backgroundColor: '#000000',
 		show: false,
 		webPreferences: {
-			preload: path.join(__dirname, '/../preload.js'),
+			preload: path.join(__dirname, './preload.js'),
 			nodeIntegration: false,
 			contextIsolation: false,
 			devTools: true,

@@ -78,7 +78,6 @@
 	"dependencies": {
 		"electron-download-manager": "^2.3.0",
 		"electron-json-storage": "^4.1.6",
-		"electron-progressbar": "1.2.0",
-		"request": "2.88.0"
+		"electron-progressbar": "1.2.0"
 	}
 }
