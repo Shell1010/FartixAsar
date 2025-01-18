@@ -310,17 +310,14 @@ app.launchGame = (name) => {
 	mainWindow.show();
 	let launch = 'LaunchApp("' + name + '");';
 	mainWindow.webContents.executeJavaScript(launch);
-	if (protocolLaunch == true) {
-		protocolLaunch = false;
-	}
+	protocolLaunch = false;
 };
 
 app.launchGameLocal = (gameName) => {
 	let launch = 'LaunchApp("' + gameName + '");';
+	mainWindow.show()
 	mainWindow.webContents.executeJavaScript(launch);
-	if (protocolLaunch == true) {
-		protocolLaunch = false;
-	}
+	protocolLaunch = false;
 };
 
 
@@ -376,6 +373,7 @@ if (!gotTheLock) {
 	app.quit();
 } else {
 	app.on('second-instance', (event, commandLine, workingDirectory) => {
+		console.log("Second instance");
 		var game = commandLine.pop().substring(8).replace('/', '');
 		protocolLaunch = true;
 		protocolGame = game;
@@ -767,7 +765,7 @@ app.once('ready', () => {
 });
 
 app.on('browser-window-created', function (e, win) {
-	win.devTools = true; //false;
+	win.devTools = true;
 	win.backgroundColor = '#000000';
 	win.setMenuBarVisibility(false);
 	//	win.setIcon(path.join(__dirname, '/../icons/', iconName));
@@ -781,6 +779,10 @@ app.on('browser-window-created', function (e, win) {
 			console.log('Pressed forward');
 			win.webContents.goForward()
 			event.preventDefault();
+		}
+		else if ((input.control && input.key === "i")) {
+			console.log("Opened devtools");
+			win.webContents.openDevTools();
 		}
 	});
 	win.on('close', function () {

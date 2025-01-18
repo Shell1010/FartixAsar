@@ -41,7 +41,7 @@ function LaunchApp(name) {
     },
     default: (gameName) => {
       const { url, size } = gameWindows[gameName] || {};
-      if (url && size) window.open(url, "", size);
+      if (url && size) window.open(url, "", `${size},toolbar=yes,location=yes,status=yes,menubar=yes,scrollbars=yes,resizable=yes`);
     }
   };
 
@@ -52,7 +52,7 @@ function LaunchApp(name) {
     },
     electron: () => platformHandlers["chrome-nw"](),
     mac: () => window.webkit?.messageHandlers?.native?.postMessage(name),
-    linux: () => launch_game(name),
+    linux: () => {},
     default: () => {
       const dispatch = {
         chrome: () => callbackObj.onUIMessage(name),
