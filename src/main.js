@@ -556,7 +556,7 @@ app.once('ready', () => {
 			label: 'Dragonfable',
 			id: 'Dragonfable',
 			click: function () {
-				app.launchGame('df');I require 
+				app.launchGame('df'); 
 			}
 		},
 		{
@@ -629,18 +629,9 @@ app.once('ready', () => {
 		if ('NotificationsEnabled' in data) {
 			NotificationsEnabled = data.NotificationsEnabled;
 		}
-		/*else {
-			NotificationsEnabled = true;
-			//app.SaveLocalData('config', { NotificationsEnabled: true, MinimizeToTray:MinimizeToTray, ClearDataOnExit:ClearDataOnExit });
-		}*/
 		if ('ClearDataOnExit' in data) {
 			ClearDataOnExit = data.ClearDataOnExit;
 		}
-		/*
-		else {
-			ClearDataOnExit = false;
-			//app.SaveLocalData('config', { ClearDataOnExit: false, NotificationsEnabled: NotificationsEnabled, MinimizeToTray:MinimizeToTray });
-		}*/
 
 		if ('MinimizeToTray' in data) {
 			if (!isMac) //process.platform != 'darwin') 
@@ -648,10 +639,6 @@ app.once('ready', () => {
 			else
 				MinimizeToTray = true;
 		}
-		/* else {
-			MinimizeToTray  = true;
-			//app.SaveLocalData('config', { MinimizeToTray: false, ClearDataOnExit: ClearDataOnExit, NotificationsEnabled: NotificationsEnabled, });
-		}*/
 		app.SaveLocalData('config', {
 			NotificationsEnabled: NotificationsEnabled,
 			MinimizeToTray: MinimizeToTray,
@@ -697,36 +684,6 @@ app.once('ready', () => {
 	});
 	win.setIcon(path.join(__dirname, '/../icons/', iconName));
 
-	/*
-		var mainWinProgressBar = new ProgressBar({
-			title: 'Artix Game Launcher',
-			text: 'Loading',
-			detail: 'Loading Artix Games Portal'
-		});
-	
-		mainWinProgressBar.on('aborted', function (event) {
-			clearTimeout(mainWinTimer);
-			app.isQuiting = true;
-			app.quit();
-		});
-		*/
-
-	/*
-	mainWinTimer = setTimeout(function (event) {
-		mainWinProgressBar.setCompleted();
-		dialog.showMessageBox(
-			mainWindow,
-			{
-				title: 'Failed to connect',
-				message: 'Artix Game Launcher connection timed out. Please try again later.'
-			},
-			function () {
-				app.isQuiting = true;
-				app.quit();
-			}
-		);
-	}, 30000);
-	*/
 	win.on('ready-to-show', () => {
 		if (protocolLaunch == true) {
 			//protocolLaunch = false;
@@ -745,13 +702,6 @@ app.once('ready', () => {
 		win.title = 'Artix Game Launcher v.' + clientVersion;
 		app.isQuiting = false;
 
-		// switch (process.platform) {
-		// 	case 'darwin':
-		// 		appIcon = new Tray(path.join(__dirname, '/../icons/', 'Artix_DragonSquare_18x18.png'));
-		// 		break;
-		// 	default:
-		// 		break;
-		// }
 		if (process.platform != 'darwin') {
 			appIcon = new Tray(path.join(__dirname, '/../icons/', 'Artix_DragonSquare_32x32.png'));
 			appIcon.setToolTip('Artix Game Launcher v.' + clientVersion);

@@ -1,6 +1,6 @@
 app.asar
 package-lock.json
-package.json
+package-release.json
 icons/
 plugins/
 node_modules/

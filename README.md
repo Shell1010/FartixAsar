@@ -6,3 +6,7 @@ Please tell me if something breaks, not really doing much testing because I only
 ## Additions
 - `Ctrl + i` launches dev tools, applies to game windows too (access assets via networking tab)
 
+## Fixes
+- Made it so launcher doesn't execute JS via console just to launch a game
+- Fixed weird window being unable to be resized and snapping back when moved, this occurred during launch via context menu
+- Cleaned some code, removed redundant functions
