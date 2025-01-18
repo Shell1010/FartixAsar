@@ -305,23 +305,42 @@ app.launchUpdateProcess = async () => {
 };
 
 app.launchGame = (name) => {
-	devToolsLog(process.argv);
-	devToolsLog('Got to Launch?...' + name);
-	mainWindow.show();
-	let launch = 'LaunchApp("' + name + '");';
-	mainWindow.webContents.executeJavaScript(launch);
-	protocolLaunch = false;
-};
-
-app.launchGameLocal = (gameName) => {
-	let launch = 'LaunchApp("' + gameName + '");';
-	mainWindow.show()
-	mainWindow.webContents.executeJavaScript(launch);
+	var size = gameWindows[gameName].size.split(',');
+	var size_x = size[2].split('=')[1];
+	var size_y = size[3].split('=')[1];
+	var gameUrl = gameWindows[gameName].url;
+	app.launchNewWindowURL(gameUrl, Number(size_x), Number(size_y));
 	protocolLaunch = false;
 };
 
 
-
+app.launchNewWindowURL = (url, w, h, r = true, dev = true) => {
+	var new_win = new BrowserWindow({
+		width: w,
+		height: h,
+		backgroundColor: '#000000',
+		show: true,
+		resizable: r,
+		useContentSize: true,
+		autoHideMenuBar: true,
+		webPreferences: {
+			nodeIntegration: false,
+			contextIsolation: false,
+			preload: path.join(__dirname, '/../preload.js'),
+			devTools: dev,
+			plugins: true,
+			offscreen: {
+				useSharedTexture: true
+			},
+		}
+	});
+	new_win.loadURL(url).then(() => {
+		new_win.setAlwaysOnTop(false);
+	}).catch(function() {
+		new_win.close();
+		
+	});
+}
 app.setGameWindows = (obj) => {
 	try {
 		gameWindows = obj;
@@ -516,7 +535,7 @@ app.once('ready', () => {
 			label: 'AdventureQuest',
 			id: 'AdventureQuest',
 			click: function () {
-				app.launchGameLocal('aq');
+				app.launchGame('aq');
 			}
 		},
 		{
@@ -530,49 +549,49 @@ app.once('ready', () => {
 			label: 'AdventureQuest Worlds',
 			id: 'AdventureQuest Worlds',
 			click: function () {
-				app.launchGameLocal('aqw');
+				app.launchGame('aqw');
 			}
 		},
 		{
 			label: 'Dragonfable',
 			id: 'Dragonfable',
 			click: function () {
-				app.launchGameLocal('df');
+				app.launchGame('df');
 			}
 		},
 		{
 			label: 'Ebil Games',
 			id: 'Ebil Games',
 			click: function () {
-				app.launchGameLocal('ebil');
+				app.launchGame('ebil');
 			}
 		},
 		{
 			label: 'Epic Duel',
 			id: 'Epic Duel',
 			click: function () {
-				app.launchGameLocal('ed');
+				app.launchGame('ed');
 			}
 		},
 		{
 			label: 'IdleQuest',
 			id: 'IdleQuest',
 			click: function () {
-				app.launchGameLocal('iq');
+				app.launchGame('iq');
 			}
 		},
 		{
 			label: 'MechQuest',
 			id: 'MechQuest',
 			click: function () {
-				app.launchGameLocal('mq');
+				app.launchGame('mq');
 			}
 		},
 		{
 			label: 'Oversoul',
 			id: 'Oversoul',
 			click: function () {
-				app.launchGameLocal('os');
+				app.launchGame('os');
 			}
 		},
 
