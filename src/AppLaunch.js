@@ -19,50 +19,53 @@ var gameWindows =
 
 
 function LaunchApp(name) {
-    const isMac = navigator.platform === "MacIntel";
-    const isLinux = navigator.platform.indexOf("Linux") > -1;
-    const isGameWithInterop = (gameName, action) => window.interop && window.interop[action];
-
-    const openGameWindow = (gameName) => {
-        const { url, size } = gameWindows[gameName] || {};
-        if (url && size) {
-            window.open(url, "", size);
-        }
-    };
-
-    if (launchMode === "chrome-nw" || launchMode === "electron") {
-        const parts = name.split('-');
-        const gameName = parts.length > 1 ? parts[1] : name;
-
-        if (gameName === 'iq') {
-            if (isGameWithInterop('iq', 'launchIQ')) {
-                window.interop.launchIQ(gameWindows[gameName].url);
-            } else {
-                alert("Please update your launcher to run IdleQuest");
-            }
-        } else if (gameName === 'aq3d') {
-            if (isGameWithInterop('aq3d', 'launch3D')) {
-                window.interop.launch3D();
-            } else {
-                const aq3dwin = window.open("", "", "top=30,left=30,width=500,height=300");
-                aq3dwin.setTimeout(close, 10000);
-                aq3dwin.open("steam://rungameid/429790", "_self");
-            }
-        } else {
-            openGameWindow(gameName);
-        }
-    } else if (isMac) {
-        window.webkit.messageHandlers.native.postMessage(name);
-    } else if (isLinux) {
-        launch_game(name);
-    } else {
-        const uiMessageHandlers = {
-            "chrome": () => callbackObj.onUIMessage(name),
-            "gecko": () => geckoDispatch("OnUIMessage", name),
-            "default": () => window.external.OnUIMessage(name)
-        };
-        (uiMessageHandlers[launchMode] || uiMessageHandlers["default"])();
+  const platform = navigator.userAgentData?.platform || 
+                  (typeof process !== 'undefined' ? process.platform : 'unknown');
+  const isMac = platform.toLowerCase().includes('mac');
+  
+  const gameHandlers = {
+    iq: () => {
+      if (window.interop?.launchIQ) {
+        window.interop.launchIQ(gameWindows.iq.url);
+      } else {
+        alert("Please update your launcher to run IdleQuest");
+      }
+    },
+    aq3d: () => {
+      if (window.interop?.launch3D) {
+        window.interop.launch3D();
+      } else {
+        const win = window.open("steam://rungameid/429790", "_blank");
+        win?.setTimeout(close, 10000);
+      }
+    },
+    default: (gameName) => {
+      const { url, size } = gameWindows[gameName] || {};
+      if (url && size) window.open(url, "", size);
     }
+  };
+
+  const platformHandlers = {
+    "chrome-nw": () => {
+      const gameName = name.split('-')[1] || name;
+      (gameHandlers[gameName] || gameHandlers.default)(gameName);
+    },
+    electron: () => platformHandlers["chrome-nw"](),
+    mac: () => window.webkit?.messageHandlers?.native?.postMessage(name),
+    linux: () => launch_game(name),
+    default: () => {
+      const dispatch = {
+        chrome: () => callbackObj.onUIMessage(name),
+        gecko: () => geckoDispatch("OnUIMessage", name),
+        default: () => console.warn("Unsupported launch mode")
+      };
+      (dispatch[launchMode] || dispatch.default)();
+    }
+  };
+
+  const handler = platformHandlers[launchMode] || 
+                 (isMac ? platformHandlers.mac : platformHandlers.default);
+  handler();
 }
 
 
@@ -82,7 +85,6 @@ function onLoadedWebView() {
     else if (launchMode == "gecko") {
         geckoDispatch("OnUIMessage", "WebViewLoaded");
     }
-    //LogPage("Launch "+launchMode);
 }
 
 
@@ -144,7 +146,6 @@ function OpenExternalBrowser(url) {
 
 
 function geckoDispatch(msg, str) {
-   // LogPage("Dispatch Message to gecko " + msg + "," + str);
     var event = document.createEvent('MessageEvent');
     event.initMessageEvent(msg, true, true, str, null, 1234, null, null);
     document.dispatchEvent(event);
@@ -152,20 +153,12 @@ function geckoDispatch(msg, str) {
 
 
 function chromeDispatch(str) {
-   // LogPage("Dispatch Message to chrome " + msg);
     callbackObj.onUIMessage(msg);
-}
-
-function LogPage(msg) {
-   // var elem = document.createElement('div');
-   // elem.innerHTML = "<p>" + msg + "</p>";
-   // document.body.appendChild(elem);
 }
 
 function ShowUpdate()
 {	
 	var upLi = document.createElement("li");
-	//<a href='javascript:alert('Hi')'>ClickMe</a>
 	upLi.innerHTML = "<li><a title='New Version Available' href='javascript:window.interop.launchUpdateLink()'>Update Launcher</a> <sup style='color:red'>New!</sup></li>"
 	document.getElementById('topnav').appendChild(upLi);
 }
@@ -177,7 +170,6 @@ function OpenUpdateLegacy()
 function ShowUpdateLegacy()
 {
 	var upLi = document.createElement("li");
-	//<a href='javascript:alert('Hi')'>ClickMe</a>
 	upLi.innerHTML = "<li><a title='New Version Available' href='javascript:window.interop.launchUpdateLink()'>Update Launcher</a> <sup style='color:red'>New!</sup></li>"
 	document.getElementById('topnav').appendChild(upLi);
 }
@@ -193,7 +185,6 @@ function ClearCache() {
 }
 
 $(document).ready(function () {
-   // LogPage(navigator.userAgent + " : " + navigator.platform);
 	if (navigator.userAgent.indexOf("Chrome/73") > -1) {
         launchMode = "chrome-nw";
     }
@@ -211,11 +202,7 @@ $(document).ready(function () {
 		launchMode = "electron";
 		if(window.interop.clientVersion() < launcherVersion) 
 		{
-			//var upDiv = document.createElement("div");
-			//upDiv.innerHTML = "<p align=center> New Version Available! Get it <a href='javascript:window.interop.launchUpdateLink()'>Here</a></p>"
-			//document.body.appendChild(upDiv);
 			ShowUpdate();
-			//console.log("Interop detected: Client version: "+window.interop.clientVersion());
 		}
 		
 		if(window.interop.clientVersion() >= 205)
@@ -229,14 +216,6 @@ $(document).ready(function () {
 		document.title += ' v.'+version;
 		ShowUpdateLegacy();
 	}
-	//if(launchMode != "chrome-nw")
-	//{
-		// var conf = confirm("New version available! Please uninstall this version before upgrading. Would you like to download the latest launcher now?")
-        //  if( conf) {
-        //    OpenExternalBrowser("http://www.artix.com/downloads/artixlauncher/");
-        //    window.close();
-        //  }
-	//}
     onLoadedWebView();
 });
 

@@ -1,6 +1,5 @@
 
 
-
 const clientVersion = 212;
 
 const { app, BrowserWindow, dialog, shell, Tray, Menu, MenuItem, Notification, protocol, session } = require('electron');
@@ -9,16 +8,13 @@ if (!gotTheLock) {
 	app.quit();
 }
 const path = require('path');
-const options = {}; //{ extraHeaders: 'pragma: no-cache\n' };
+const options = {}; 
 const ProgressBar = require('electron-progressbar');
 const jsonLocalStorage = require('electron-json-storage');
 const DownloadManager = require('electron-download-manager');
 const fs = require('fs');
-const { version } = require('os');
-const { Console } = require('console');
 const { setTimeout } = require('timers');
 
-let appProxy = app;
 let iconName = 'Artix_DragonSquare_256.png';
 let pluginName;
 let appIcon;
@@ -26,7 +22,6 @@ let contextMenu;
 let mainWindow;
 let mainWinTimer;
 let iq_win;
-let iqIsPlaying = false;
 let UpdateURL = 'https://launch.artix.com/latest/';
 let UpdateFilename = 'ArtixLauncher_win_x64.exe';
 let UpdateFilePath = 'ArtixLauncher_win_x64.exe';
@@ -47,7 +42,7 @@ let gameIDS = {
 	'launch-aq3d': 1136
 };
 
-let isMac = true; // SET THIS BACK WHEN MINIMIZE FEATURE RELEASED (process.platform == 'darwin');
+let isMac = true;
 let tempTimers = [];
 
 process.setMaxListeners(100);
@@ -73,12 +68,8 @@ app.setAsDefaultProtocolClient('artix', process.execPath);
 
 let gameWindows;
 
-// prints given message both in the terminal console and in the DevTools
 function devToolsLog(s) {
 	console.log(s);
-	// if (mainWindow != null && mainWindow.webContents != null) {
-	//   mainWindow.webContents.executeJavaScript(`console.log("${s}")`)
-	// }
 }
 
 function createLauncherURL() {
@@ -98,7 +89,6 @@ app.IsNotificationEnabled = () => {
 };
 app.setAppUserModelId('Artix Entertainment, LLC'); //process.execPath);
 
-// Specify flash path, supposing it is placed in the same directory with main.js.
 switch (process.platform) {
 	case 'win32':
 		pluginName = process.arch == 'x64' ? 'pepflashplayer.dll' : 'pepflashplayer32.dll';
@@ -107,7 +97,6 @@ switch (process.platform) {
 		UpdateFilename = platformFilename;
 		UpdateFilePath = DownloadFolder + '\\' + platformFilename;
 		devToolsLog('Update Path = ' + UpdateFilePath);
-		//	iconName = 'icon.ico';
 		break;
 	case 'darwin':
 		pluginName = 'PepperFlashPlayer.plugin';
@@ -126,7 +115,6 @@ switch (process.platform) {
 		DownloadFolder = app.getPath('downloads') + '\\Artix Entertainment LLC';
 		UpdateFilename = 'ArtixLauncher_win_x64.exe';
 		UpdateFilePath = DownloadFolder + '\\ArtixLauncher_win_x64.exe';
-		//	iconName = 'icon.ico';
 		break;
 }
 
@@ -145,13 +133,13 @@ app.launch3D = () => {
 		detail: 'Attempting to Launch AQ3D (Requires Steam)'
 	});
 	var steamOpen = shell.openExternal('steam://rungameid/429790');
-	steamOpen.then(function (value) {
+	steamOpen.then(function (_) {
 		setTimeout(function () {
 			progressBar.setCompleted();
 		}, 10000);
 	});
 
-	steamOpen.catch(function (value) {
+	steamOpen.catch(function (_) {
 		setTimeout(function () {
 			progressBar.setCompleted();
 		}, 10000);
@@ -160,7 +148,7 @@ app.launch3D = () => {
 };
 
 app.SaveLocalData = (key, obj) => {
-	jsonLocalStorage.set(key, obj, function (error, data) {
+	jsonLocalStorage.set(key, obj, function (error, _) {
 		if (error) {
 			throw error;
 		} else {
@@ -194,6 +182,7 @@ app.ShowNotification = (message) => {
 	});
 	notif.show();
 };
+
 app.launchIQ = (url) => {
 	if (iq_win != null) {
 		iq_win.show();
@@ -216,18 +205,10 @@ app.launchIQ = (url) => {
 			}
 		});
 
-		iq_win.on('close', function (event) {
+		iq_win.on('close', function (_) {
 			app.iqIsPlaying = false;
 			iq_win = null;
 		});
-
-		//iq_win.on('minimize', function(event) {
-		//	if (app.iqIsPlaying) {
-		//		event.preventDefault();
-		//		iq_win.hide();
-		//	}
-		//});
-
 		iq_win.loadURL(url); //'https://idlequest.artix.com/game/v/7/');
 	}
 };
@@ -236,121 +217,91 @@ app.clientVersion = () => {
 	return clientVersion;
 };
 
-app.launchUpdateLink = () => {
-	//shell.openExternal('https://www.artix.com/downloads/artixlauncher/', '_blank');
-	devToolsLog('Attempting Update' + IsUpdating);
-	if (!IsUpdating) {
-		IsUpdating = true;
-		/*
-	let myFirstPromise = new Promise((resolve, reject) => {
-	// We call resolve(...) when what we were doing asynchronously was successful, and reject(...) when it failed.
-	// In this example, we use setTimeout(...) to simulate async code. 
-	// In reality, you will probably be using something like XHR or an HTML5 API.
-	setTimeout( function() {
-		resolve("Success!")  // Yay! Everything went well!
-	}, 250) 
-	}) 
+app.launchUpdateLink = async () => {
+  if (IsUpdating) return;
+  
+  try {
+    IsUpdating = true;
+    const progressBar = new ProgressBar({
+      title: 'Update',
+      indeterminate: false,
+      text: 'Downloading Update',
+      detail: 'Downloading Latest Update'
+    });
 
-	myFirstPromise.then((successMessage) => {
-	// successMessage is whatever we passed in the resolve(...) function above.
-	// It doesn't have to be a string, but if it is only a succeed message, it probably will be.
-	console.log("Yay! " + successMessage) 
-	*/
+    await fs.promises.unlink(UpdateFilePath).catch(err => {
+      devToolsLog('Previous updater cleanup:', err?.message);
+    });
 
-		let downloadPromise = new Promise((resolve, reject) => {
-			fs.unlink(UpdateFilePath, (err) => {
-				if (err) {
-					devToolsLog(err);
-					resolve();
-				} else {
-					devToolsLog('success: deleted previous updater');
-					resolve();
-				}
-			});
-		}).then(() => {
-			devToolsLog('Done deleting - start download');
-			var progressBar = new ProgressBar({
-				title: 'Update',
-				indeterminate: false,
-				text: 'Downloading Update',
-				detail: 'Downloading Latest Update'
-			});
-			DownloadManager.download(
-				{
-					url: UpdateURL + UpdateFilename,
-					onProgress: function (progress, item) {
-						if (progress < 100) progressBar.value = progress;
-					}
-				},
-				function (error, info) {
-					if (error) {
-						devToolsLog(error);
-						return;
-					}
-					progressBar.setCompleted();
-					devToolsLog('DONE: ' + info.url);
+    const downloadResult = await new Promise((resolve, reject) => {
+      DownloadManager.download({
+        url: `${UpdateURL}${UpdateFilename}`,
+        onProgress: (progress) => {
+          if (progress < 100) progressBar.value = progress;
+        }
+      }, (error, info) => {
+        if (error) reject(error);
+        else resolve(info);
+      });
+    });
 
-					let conf_options = {
-						buttons: ['Yes', 'No'],
-						message: 'Download Complete.  Would you like to update now?'
-					};
-					let diag = dialog.showMessageBox(conf_options).then((obj) => {
-						devToolsLog(obj.response);
-						mainWindow.reload();
-						if (obj.response == 0) {
-							app.launchUpdateProcess();
-						} else {
-							devToolsLog('Setting IsUpdating');
-							IsUpdating = false;
-							shell.showItemInFolder(UpdateFilePath);
-						}
-					});
-				}
-			);
-			// }).catch( () => {
-			// 	devToolsLog("Error in download promise ");
-			// 	devToolsLog("Setting IsUpdating");
-			// 	IsUpdating = false;
-		});
-	}
+    progressBar.setCompleted();
+    devToolsLog('Download completed:', downloadResult.url);
+
+    const { response } = await dialog.showMessageBox({
+      buttons: ['Yes', 'No'],
+      message: 'Download Complete. Would you like to update now?'
+    });
+
+    mainWindow.reload();
+
+    if (response === 0) {
+      app.launchUpdateProcess();
+    } else {
+      shell.showItemInFolder(UpdateFilePath);
+    }
+  } catch (error) {
+    devToolsLog('Update failed:', error?.message);
+  } finally {
+    IsUpdating = false;
+  }
 };
 
-app.launchUpdateProcess = () => {
-	devToolsLog(process.platform);
-	if (process.platform == 'win32') {
-		var LaunchprogressBar = new ProgressBar({
-			title: 'Launching Update',
-			text: 'Launching Update',
-			detail: 'Launching Update (Please be patient. This could take a while.)'
-		});
-		//progressBar.setCompleted();
-		var updateOpen = shell
-			.openExternal(UpdateFilePath)
-			.then(function (value) {
-				LaunchprogressBar.setCompleted();
-				app.isQuiting = true;
-				app.iqIsPlaying = false;
-				app.exit();
-			})
-			.catch(function (value) {
-				devToolsLog('Setting IsUpdating');
-				IsUpdating = false;
-				devToolsLog('Error Launching update.');
-				LaunchprogressBar.setCompleted();
-				let err_options = {
-					buttons: ['Okay'],
-					message: 'Error Launching update.  Opening folder location'
-				};
-				dialog.showMessageBox(err_options).then((value) => {
-					shell.showItemInFolder(UpdateFilePath);
-				});
-			});
-	} else {
-		shell.showItemInFolder(UpdateFilePath);
-		app.isQuiting = true;
-		app.iqIsPlaying = false;
-		app.exit();
-	}
+app.launchUpdateProcess = async () => {
+  const isWindows = process.platform === 'win32';
+  devToolsLog(process.platform);
+
+  try {
+    if (isWindows) {
+      const progressBar = new ProgressBar({
+        title: 'Launching Update',
+        text: 'Launching Update',
+        detail: 'Launching Update (Please be patient. This could take a while.)'
+      });
+
+      await shell.openExternal(UpdateFilePath);
+      progressBar.setCompleted();
+    } else {
+      shell.showItemInFolder(UpdateFilePath);
+    }
+
+    app.isQuiting = true;
+    app.iqIsPlaying = false;
+    app.exit();
+  } catch (error) {
+    devToolsLog('Setting IsUpdating');
+    IsUpdating = false;
+    devToolsLog('Error Launching update.');
+
+    if (isWindows) {
+      await dialog.showMessageBox({
+        buttons: ['Okay'],
+        message: 'Error Launching update. Opening folder location'
+      });
+    }
+    
+    shell.showItemInFolder(UpdateFilePath);
+  }
 };
 
 app.launchGame = (name) => {
@@ -434,7 +385,7 @@ if (!gotTheLock) {
 		// Someone tried to run a second instance, we should focus our window.
 		if (mainWindow != null) {
 			mainWindow.show();
-			mainWindow.loadURL(loadURL).catch(function() {
+			mainWindow.loadURL(loadURL).catch(function () {
 				app.isQuiting = true;
 				app.quit();
 			});
@@ -481,17 +432,16 @@ app.once('ready', () => {
 	mainWindow = win;
 
 	// remove Artix custom userAgent partial string
-	newAgentString = mainWindow.webContents.userAgent.replace(/Artix.*\s/,"");
+	newAgentString = mainWindow.webContents.userAgent.replace(/Artix.*\s/, "");
 	session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
 		details.requestHeaders['User-Agent'] = newAgentString;
 		details.requestHeaders['artixmode'] = 'launcher';
 		callback({ cancel: false, requestHeaders: details.requestHeaders });
-    });
+	});
 
 	let checkval = NotificationsEnabled;
 	let checkvalMin = MinimizeToTray;
 	let checkvalClear = ClearDataOnExit;
-	let MinimizeVisible = !isMac; //(process.platform == 'darwin');
 	devToolsLog('Checked> ' + checkval);
 	let menuTemplate = [
 		{
@@ -644,7 +594,7 @@ app.once('ready', () => {
 	];
 	if (isMac) //process.platform == 'darwin')
 	{
-		menuTemplate.splice(3,1);
+		menuTemplate.splice(3, 1);
 	}
 	contextMenu = Menu.buildFromTemplate(menuTemplate);
 
@@ -709,10 +659,10 @@ app.once('ready', () => {
 		if (protocolLaunch) {
 			app.launchGame(protocolGame);
 		}
-	}).catch(function() {
+	}).catch(function () {
 		devToolsLog("Closing in 5 seconds");
 		app.isQuiting = true;
-		setTimeout(() => { 
+		setTimeout(() => {
 			app.isQuiting = true;
 			app.quit();
 		}, 5000);
@@ -727,19 +677,19 @@ app.once('ready', () => {
 	});
 	win.setIcon(path.join(__dirname, '/../icons/', iconName));
 
-/*
-	var mainWinProgressBar = new ProgressBar({
-		title: 'Artix Game Launcher',
-		text: 'Loading',
-		detail: 'Loading Artix Games Portal'
-	});
-
-	mainWinProgressBar.on('aborted', function (event) {
-		clearTimeout(mainWinTimer);
-		app.isQuiting = true;
-		app.quit();
-	});
-	*/
+	/*
+		var mainWinProgressBar = new ProgressBar({
+			title: 'Artix Game Launcher',
+			text: 'Loading',
+			detail: 'Loading Artix Games Portal'
+		});
+	
+		mainWinProgressBar.on('aborted', function (event) {
+			clearTimeout(mainWinTimer);
+			app.isQuiting = true;
+			app.quit();
+		});
+		*/
 
 	/*
 	mainWinTimer = setTimeout(function (event) {
@@ -820,33 +770,33 @@ app.on('browser-window-created', function (e, win) {
 	win.devTools = true; //false;
 	win.backgroundColor = '#000000';
 	win.setMenuBarVisibility(false);
-//	win.setIcon(path.join(__dirname, '/../icons/', iconName));
-win.webContents.on('before-input-event', (event, input) => {
-	if ((input.control && input.key.toLowerCase() === 'arrowleft') && win.webContents.canGoBack()) {
-		console.log('Pressed back');
-		win.webContents.goBack()
-		event.preventDefault();
-	}
-	else if ((input.control && input.key.toLowerCase() === 'arrowright') && win.webContents.canGoForward()) {
-		console.log('Pressed forward');
-		win.webContents.goForward()
-		event.preventDefault();
-	}
-});
-win.on('close', function () {
-	for (var i = 0; i < tempTimers.length; i++) {
-		clearTimeout(tempTimers[i]); // clear all the timeouts
-	}
-	tempTimers = [];//empty the id array
-});
+	//	win.setIcon(path.join(__dirname, '/../icons/', iconName));
+	win.webContents.on('before-input-event', (event, input) => {
+		if ((input.control && input.key.toLowerCase() === 'arrowleft') && win.webContents.canGoBack()) {
+			console.log('Pressed back');
+			win.webContents.goBack()
+			event.preventDefault();
+		}
+		else if ((input.control && input.key.toLowerCase() === 'arrowright') && win.webContents.canGoForward()) {
+			console.log('Pressed forward');
+			win.webContents.goForward()
+			event.preventDefault();
+		}
+	});
+	win.on('close', function () {
+		for (var i = 0; i < tempTimers.length; i++) {
+			clearTimeout(tempTimers[i]); // clear all the timeouts
+		}
+		tempTimers = [];//empty the id array
+	});
 
-win.webContents.setZoomFactor(1.0);
+	win.webContents.setZoomFactor(1.0);
 
-// Upper Limit is working of 500 %
-win.webContents
-	.setVisualZoomLevelLimits(1, 5)
-	.then(console.log("Zoom Levels Have been Set between 100% and 500%"))
-	.catch((err) => console.log(err));
+	// Upper Limit is working of 500 %
+	win.webContents
+		.setVisualZoomLevelLimits(1, 5)
+		.then(console.log("Zoom Levels Have been Set between 100% and 500%"))
+		.catch((err) => console.log(err));
 
 	win.webContents.on("zoom-changed", (event, zoomDirection) => {
 		console.log(zoomDirection);
@@ -855,22 +805,22 @@ win.webContents
 		// console.log('Current Zoom Level at - '
 		// , win.webContents.getZoomLevel());
 		console.log("Current Zoom Level at - ", win.webContents.zoomLevel);
-	  
+
 		if (zoomDirection === "in") {
-			
+
 			// win.webContents.setZoomFactor(currentZoom + 0.20);
 			win.webContents.zoomFactor = currentZoom + 0.2;
-	  
+
 			console.log("Zoom Factor Increased to - "
-						, win.webContents.zoomFactor * 100, "%");
+				, win.webContents.zoomFactor * 100, "%");
 		}
 		if (zoomDirection === "out") {
-			
+
 			// win.webContents.setZoomFactor(currentZoom - 0.20);
 			win.webContents.zoomFactor = currentZoom - 0.2;
-	  
+
 			console.log("Zoom Factor Decreased to - "
-						, win.webContents.zoomFactor * 100, "%");
+				, win.webContents.zoomFactor * 100, "%");
 		}
 	});
 

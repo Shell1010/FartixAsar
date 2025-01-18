@@ -3,3 +3,4 @@ package-lock.json
 package.json
 icons/
 plugins/
+node_modules/
