@@ -4,7 +4,7 @@ A custom app.asar intended to fix bugs with the current asar and probably improv
 Please tell me if something breaks, not really doing much testing because I only really play AQW and if that works then I'm assuming the rest does too.
 
 ## Additions
-- `Ctrl + i` launches dev tools, applies to game windows too (access assets via networking tab)
+- `Ctrl + i` launches dev tools (mainly for debugging purposes)
 
 ## Fixes
 - Made it so launcher doesn't execute JS via console just to launch a game
