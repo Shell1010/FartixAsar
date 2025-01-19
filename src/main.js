@@ -8,7 +8,7 @@ if (!gotTheLock) {
 	app.quit();
 }
 const path = require('path');
-const options = {}; 
+const options = {};
 const ProgressBar = require('electron-progressbar');
 const jsonLocalStorage = require('electron-json-storage');
 const DownloadManager = require('electron-download-manager');
@@ -218,91 +218,102 @@ app.clientVersion = () => {
 };
 
 app.launchUpdateLink = async () => {
-  if (IsUpdating) return;
-  
-  try {
-    IsUpdating = true;
-    const progressBar = new ProgressBar({
-      title: 'Update',
-      indeterminate: false,
-      text: 'Downloading Update',
-      detail: 'Downloading Latest Update'
-    });
+	if (IsUpdating) return;
 
-    await fs.promises.unlink(UpdateFilePath).catch(err => {
-      devToolsLog('Previous updater cleanup:', err?.message);
-    });
+	try {
+		IsUpdating = true;
+		const progressBar = new ProgressBar({
+			title: 'Update',
+			indeterminate: false,
+			text: 'Downloading Update',
+			detail: 'Downloading Latest Update'
+		});
 
-    const downloadResult = await new Promise((resolve, reject) => {
-      DownloadManager.download({
-        url: `${UpdateURL}${UpdateFilename}`,
-        onProgress: (progress) => {
-          if (progress < 100) progressBar.value = progress;
-        }
-      }, (error, info) => {
-        if (error) reject(error);
-        else resolve(info);
-      });
-    });
+		await fs.promises.unlink(UpdateFilePath).catch(err => {
+			devToolsLog('Previous updater cleanup:', err?.message);
+		});
 
-    progressBar.setCompleted();
-    devToolsLog('Download completed:', downloadResult.url);
+		const downloadResult = await new Promise((resolve, reject) => {
+			DownloadManager.download({
+				url: `${UpdateURL}${UpdateFilename}`,
+				onProgress: (progress) => {
+					if (progress < 100) progressBar.value = progress;
+				}
+			}, (error, info) => {
+				if (error) reject(error);
+				else resolve(info);
+			});
+		});
 
-    const { response } = await dialog.showMessageBox({
-      buttons: ['Yes', 'No'],
-      message: 'Download Complete. Would you like to update now?'
-    });
+		progressBar.setCompleted();
+		devToolsLog('Download completed:', downloadResult.url);
 
-    mainWindow.reload();
+		const { response } = await dialog.showMessageBox({
+			buttons: ['Yes', 'No'],
+			message: 'Download Complete. Would you like to update now?'
+		});
 
-    if (response === 0) {
-      app.launchUpdateProcess();
-    } else {
-      shell.showItemInFolder(UpdateFilePath);
-    }
-  } catch (error) {
-    devToolsLog('Update failed:', error?.message);
-  } finally {
-    IsUpdating = false;
-  }
+		mainWindow.reload();
+
+		if (response === 0) {
+			app.launchUpdateProcess();
+		} else {
+			shell.showItemInFolder(UpdateFilePath);
+		}
+	} catch (error) {
+		devToolsLog('Update failed:', error?.message);
+	} finally {
+		IsUpdating = false;
+	}
 };
 
 app.launchUpdateProcess = async () => {
-  const isWindows = process.platform === 'win32';
-  devToolsLog(process.platform);
+	const isWindows = process.platform === 'win32';
+	devToolsLog(process.platform);
 
-  try {
-    if (isWindows) {
-      const progressBar = new ProgressBar({
-        title: 'Launching Update',
-        text: 'Launching Update',
-        detail: 'Launching Update (Please be patient. This could take a while.)'
-      });
+	try {
+		if (isWindows) {
+			const progressBar = new ProgressBar({
+				title: 'Launching Update',
+				text: 'Launching Update',
+				detail: 'Launching Update (Please be patient. This could take a while.)'
+			});
 
-      await shell.openExternal(UpdateFilePath);
-      progressBar.setCompleted();
-    } else {
-      shell.showItemInFolder(UpdateFilePath);
-    }
+			await shell.openExternal(UpdateFilePath);
+			progressBar.setCompleted();
+		} else {
+			shell.showItemInFolder(UpdateFilePath);
+		}
 
-    app.isQuiting = true;
-    app.iqIsPlaying = false;
-    app.exit();
-  } catch (error) {
-    devToolsLog('Setting IsUpdating');
-    IsUpdating = false;
-    devToolsLog('Error Launching update.');
+		app.isQuiting = true;
+		app.iqIsPlaying = false;
+		app.exit();
+	} catch (error) {
+		devToolsLog('Setting IsUpdating');
+		IsUpdating = false;
+		devToolsLog('Error Launching update.');
 
-    if (isWindows) {
-      await dialog.showMessageBox({
-        buttons: ['Okay'],
-        message: 'Error Launching update. Opening folder location'
-      });
-    }
-    
-    shell.showItemInFolder(UpdateFilePath);
-  }
+		if (isWindows) {
+			await dialog.showMessageBox({
+				buttons: ['Okay'],
+				message: 'Error Launching update. Opening folder location'
+			});
+		}
+
+		shell.showItemInFolder(UpdateFilePath);
+	}
 };
+
+app.setGameWindows = (obj) => {
+	try {
+		gameWindows = obj;
+		console.log(gameWindows);
+	}
+	catch (e) {
+		devToolsLog("obj error");
+	}
+}
+
 
 app.launchGame = (name) => {
 	var size = gameWindows[name].size.split(',');
@@ -336,19 +347,12 @@ app.launchNewWindowURL = (url, w, h, r = true, dev = true) => {
 	});
 	new_win.loadURL(url).then(() => {
 		new_win.setAlwaysOnTop(false);
-	}).catch(function() {
+	}).catch(function () {
 		new_win.close();
-		
+
 	});
 }
-app.setGameWindows = (obj) => {
-	try {
-		gameWindows = obj;
-	}
-	catch (e) {
-		devToolsLog("obj error");
-	}
-}
+
 
 app.clearCache = () => {
 	session.defaultSession
@@ -556,7 +560,7 @@ app.once('ready', () => {
 			label: 'Dragonfable',
 			id: 'Dragonfable',
 			click: function () {
-				app.launchGame('df'); 
+				app.launchGame('df');
 			}
 		},
 		{
