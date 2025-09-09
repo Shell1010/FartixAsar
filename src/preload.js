@@ -4,6 +4,10 @@ const { remote } = require('electron');
 
 
 window.interop = {
+    setGameWindows(obj)
+    {
+        remote.app.setGameWindows(obj);
+    },
     
     SaveLocalData(key, obj)
     {
@@ -51,9 +55,5 @@ window.interop = {
     clearCookies()
     {
         remote.app.clearCookies();
-    },
-    setGameWindows(obj)
-    {
-        remote.app.setGameWindows(obj);
     }
 };

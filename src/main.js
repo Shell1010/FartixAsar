@@ -68,6 +68,57 @@ app.setAsDefaultProtocolClient('artix', process.execPath);
 
 let gameWindows;
 
+let otherWindows = {
+	aqwtest: {
+		url: "https://content.aq.com/game/gamefiles/Loader3.swf?ver=a",
+		size: "top=100,left=15,width=960,height=580"
+	},
+	aqw: {
+		url: 'https://game.aq.com/game/gamefiles/Loader3.swf?ver=a',
+		size: 'top=100,left=15,width=960,height=580'
+	},
+	aqwcreate: {
+		url: 'https://www.aq.com/landing/',
+		size: 'top=160,left=30,width=960,height=580'
+	},
+	aqwspider: {
+		url: 'https://content.aq.com/game/gamefiles/Loader_Spider.swf?ver=2.001',
+		size: 'top=100,left=15,width=960,height=580'
+	},
+	ed: {
+		url: 'https://epicduelstage.artix.com/omegaLoader14.swf',
+		size: 'top=190,left=45,width=1016,height=700'
+	},
+	mq: {
+		url: 'https://play.mechquest.com/game/gamefiles/MQLoader6.swf',
+		size: 'top=120,left=60,width=1016,height=700'
+	},
+	df: {
+		url: 'https://play.dragonfable.com/game/DFLoader.swf?ver=2',
+		size: 'top=150,left=75,width=1016,height=700'
+	},
+	os: {
+		url: 'https://oversoul.artix.com/game/OSGame0_9_4g.swf',
+		size: 'top=180,left=90,width=960,height=580'
+	},
+	aq: {
+		url: 'https://aq.battleon.com/game/flash/LoaderAQ.swf',
+		size: 'top=210,left=105,width=800,height=600'
+	},
+	aq3d: {
+		url: 'https://store.steampowered.com/app/429790/AdventureQuest_3D/',
+		size: 'top=240,left=120,width=1016,height=700'
+	},
+	iq: {
+		url: 'https://idlequest.artix.com/game/v/7/',
+		size: 'top=180,left=85,width=800,height=600'
+	},
+	ebil: {
+		url: 'http://www.ebilgames.com',
+		size: 'top=270,left=135,width=1024,height=700'
+	}
+}
+
 function devToolsLog(s) {
 	console.log(s);
 }
@@ -83,6 +134,9 @@ function createLauncherURL() {
 }
 
 app.commandLine.appendSwitch('ignore-gpu-blacklist');
+app.commandLine.appendSwitch('enable-features', 'Vulkan');
+app.commandLine.appendSwitch('use-vulkan');
+
 
 app.IsNotificationEnabled = () => {
 	return NotificationsEnabled;
@@ -316,11 +370,18 @@ app.setGameWindows = (obj) => {
 
 
 app.launchGame = (name) => {
-	var size = gameWindows[name].size.split(',');
+	var size;
+	var gameUrl;
+	size = otherWindows[name].size.split(',');
+	gameUrl = otherWindows[name].url;
+
 	var size_x = size[2].split('=')[1];
 	var size_y = size[3].split('=')[1];
-	var gameUrl = gameWindows[name].url;
-	app.launchNewWindowURL(gameUrl, Number(size_x), Number(size_y));
+	if (name === "aqwtest" || name === "aqwspider") {
+		app.launchTestWindowURL(gameUrl, Number(size_x), Number(size_y));
+	} else {
+		app.launchNewWindowURL(gameUrl, Number(size_x), Number(size_y));
+	}
 	protocolLaunch = false;
 };
 
@@ -337,7 +398,7 @@ app.launchNewWindowURL = (url, w, h, r = true, dev = true) => {
 		webPreferences: {
 			nodeIntegration: false,
 			contextIsolation: false,
-			preload: path.join(__dirname, '/../preload.js'),
+			preload: path.join(__dirname, './preload.js'),
 			devTools: dev,
 			plugins: true,
 			offscreen: {
@@ -350,6 +411,55 @@ app.launchNewWindowURL = (url, w, h, r = true, dev = true) => {
 	}).catch(function () {
 		new_win.close();
 
+	});
+}
+
+app.launchTestWindowURL = (url, w, h, r = true, dev = true) => {
+	const customSession = session.fromPartition(`persist:${url}`);
+
+	// Intercept and modify headers
+	customSession.webRequest.onBeforeSendHeaders((details, callback) => {
+		details.requestHeaders['User-Agent'] = 'Mozilla/5.0 (X11; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0';
+		details.requestHeaders['Pragma'] = 'no-cache';
+		details.requestHeaders['Priority'] = 'u=4';
+		details.requestHeaders['Sec-Fetch-Dest'] = 'empty';
+		details.requestHeaders['Sec-GPC'] = '1';
+		details.requestHeaders['TE'] = 'Trailers';
+		details.requestHeaders['Host'] = 'content.aq.com';
+		details.requestHeaders['Accept-Encoding'] = 'gzip, deflate, br, zstd';
+		details.requestHeaders['Accept-Language'] = 'en-US,en;q=0.5';
+		details.requestHeaders['Connection'] = 'keep-alive';
+		details.requestHeaders['Cookie'] = 'cf_clearance=2eUT3WzLBgNQMO0XG0eCORGHQbojiyZxFrLoYrYr1QM-1745165636-1.2.1.1-SqkR0hoZ3oV.jW9pDWwv5zWTIbztyB8o7Z5g8DnBx.2hPad3.orqZtACxQ8Yn4Evbv3B1kuvCHy8S5em0W2QPd_0KfvH3fdL.vsVkIAegzeN4Lc7Ods_kAQtIznoDaYG_wPHwHQPQ0Bgp1b0yfiiTtqaHRjHA9PGHwyFC3QK4X.Z0eWXuZ2HI5fUtjGY.saNPIaH1aTnNO40agWTVUdANI1Q.J6YJ5w59OQEfR0.TrZnBnu8XqUktRPUDXKBUHQA9EcMs4tydUtbntA094_Dz4WCwfSxnUE9aVUksHoLpUIIHJ0yPkBGW0Qu.vg6aCmOem.qLQcv6vKzATqdI6OQrHUtqvHNgrRWyRn5OuQtDRYFxNKYhALRfvos7j8Obzbf; ASPSESSIONIDSCQTASQA=JFHLNKNDMBLBOAIPGIAFJLPI; aqwcontent=F6136C8F0E72DD9B14E083F86186720F';
+		delete details.requestHeaders['X-Requested-With'];
+		delete details.requestHeaders['Origin'];
+		callback({ requestHeaders: details.requestHeaders });
+	});
+
+	const new_win = new BrowserWindow({
+		width: w,
+		height: h,
+		backgroundColor: '#000000',
+		show: true,
+		resizable: r,
+		useContentSize: true,
+		autoHideMenuBar: true,
+		webPreferences: {
+			nodeIntegration: false,
+			contextIsolation: false,
+			preload: path.join(__dirname, './preload.js'),
+			devTools: dev,
+			session: customSession, // Attach the session with modified headers
+			plugins: true,
+			offscreen: {
+				useSharedTexture: true
+			},
+		}
+	});
+
+	new_win.loadURL(url).then(() => {
+		new_win.setAlwaysOnTop(false);
+	}).catch(() => {
+		new_win.close();
 	});
 }
 
@@ -459,6 +569,7 @@ app.once('ready', () => {
 	newAgentString = mainWindow.webContents.userAgent.replace(/Artix.*\s/, "");
 	session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
 		details.requestHeaders['User-Agent'] = newAgentString;
+		console.log(newAgentString);
 		details.requestHeaders['artixmode'] = 'launcher';
 		callback({ cancel: false, requestHeaders: details.requestHeaders });
 	});
@@ -543,13 +654,6 @@ app.once('ready', () => {
 			}
 		},
 		{
-			label: 'AdventureQuest 3D',
-			id: 'AdventureQuest 3D',
-			click: function () {
-				app.launch3D();
-			}
-		},
-		{
 			label: 'AdventureQuest Worlds',
 			id: 'AdventureQuest Worlds',
 			click: function () {
@@ -557,50 +661,20 @@ app.once('ready', () => {
 			}
 		},
 		{
-			label: 'Dragonfable',
-			id: 'Dragonfable',
+			label: 'AdventureQuest Worlds Spider',
+			id: 'AdventureQuest Worlds Spider',
 			click: function () {
-				app.launchGame('df');
+				app.launchGame('aqwspider');
 			}
 		},
 		{
-			label: 'Ebil Games',
-			id: 'Ebil Games',
+			label: 'AdventureQuest Worlds Dev',
+			id: 'AdventureQuest Worlds Dev',
 			click: function () {
-				app.launchGame('ebil');
+				app.launchGame('aqwtest');
 			}
 		},
-		{
-			label: 'Epic Duel',
-			id: 'Epic Duel',
-			click: function () {
-				app.launchGame('ed');
-			}
-		},
-		{
-			label: 'IdleQuest',
-			id: 'IdleQuest',
-			click: function () {
-				app.launchGame('iq');
-			}
-		},
-		{
-			label: 'MechQuest',
-			id: 'MechQuest',
-			click: function () {
-				app.launchGame('mq');
-			}
-		},
-		{
-			label: 'Oversoul',
-			id: 'Oversoul',
-			click: function () {
-				app.launchGame('os');
-			}
-		},
-
 		{ type: 'separator' },
-
 		{
 			label: 'Exit',
 			id: 'Exit',
